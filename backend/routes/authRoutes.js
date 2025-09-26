@@ -57,4 +57,58 @@ router.post("/register",async(req,res)=>{
 })
 
 
+router.post("./login",async(req,res)=>{
+    try {
+        //1) req.body에서 email, password를 꺼낸다
+        const {email,password} = req.body
+
+
+        //2) 이메일을 소문자로 바꿔 활성화된 유저 (is Active: true) 만 조회한다
+        const user = await User.findOne({
+            email : email.toLowerCase(),
+            isActive:true
+        })
+        //3) 유저가 없거나 비밀번호가 틀리면 같은 에러 메세지를 반환한다.
+        const invalidMsg={message:"이메일 또는 비밀번호가 올바르지 않습니다."}
+
+        if(!user)return res.status(400).json({message:"이메일이 올바르지 않습니다."})
+
+            const ok = await user.comparePassword({message:"비밀번호가 올바르지 않습니다."})
+        
+         if(!ok)return res.status(400).json(invalidMsg)
+    
+        //4) 성공 시 유저 문서에 isLoggined = true,lastLoginAt= 현재시간 으로 업데이트한다.
+            const updated = await user.findByIdAndUpdate(
+                user._id,
+                {
+                    $set:{
+                        isLoggined : true,
+                        lastLogginAt:new Data()
+                    }
+                },
+                {new : true} 
+            )
+
+            if(!updated) return res.status(500).json({message : "로그인 상태 갱신 실패"})
+
+                const token = makeToken(updated)
+                
+                res.cookie('token', token,{
+                    httpOnly:true,
+                    sameSite:"lax",
+                    secure:"production",
+                    maxAge: 7 * 24 * 60 * 60 * 1000
+                })
+
+                return res.status(200).json({
+                    user:updated.toSafeJSON(),
+                    token
+                })
+    
+    
+    }catch (error) {
+        return res.status(500).json({message : "로그인 실패",error: error.message})
+
+    }
+})
 module.exports=router
