@@ -111,4 +111,26 @@ router.post("./login",async(req,res)=>{
 
     }
 })
+
+router.get("/me", async (req,res)=>{
+    try {
+        const h =req.headers.authorization || ""
+
+        const token = h.startsWith("Bear") ? h.slice(7) : null
+        if (!token) return res.status(401).json({message : "인증 필요"})
+
+            const payload = jwt.verify(token, process.env.JWT_SECRET)
+
+            const user = await User.findById(payload.id)
+
+            if(!user) return res.status(404).json({message : "사용자 없음"})
+
+                res.status(200).json(user.toSafeJSON())
+
+}catch (error) {
+    res.status(401).json({message: "토큰 무효",error:error.message})
+    
+}
+    
+})
 module.exports=router
