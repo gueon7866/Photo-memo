@@ -1,13 +1,13 @@
 
 import './App.scss'
 import { useState, useEffect } from 'react'
-import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
+import { Routes, Route, Navigate,useLocation } from 'react-router-dom'
 import AuthPanel from './components/AuthPanel'
 import Landing from './pages/Landing'
 import Header from './components/Header'
 import ProtectRoute from './components/ProtectRoute'
 import UserDashboard from './pages/user/userDashboard'
-import AdminDashboard from './pages/admin/AdminDashboard'
+import AdminDashboard from './pages/admin/adminDashboard'
 import {
   fetchMe as apiFetchMe,
   logout as apiLogout,
@@ -15,18 +15,21 @@ import {
   clearAuthStorage
 } from "./api/client"
 function App() {
-  const location = useLocation()
+
   const [user, setUser] = useState(() => {
     const raw = localStorage.getItem('user')
     return raw ? JSON.parse(raw) : null
   })
 
-  const [token, setToken] = useState(() => localStorage.getItem('token'))
-  const isAuthed = !!token
-  const [me, setMe] = useState(null)
-  const hideOn = new Set(['/', './admin/login'])
-  const showHeader = isAuthed && !hideOn.has(location.pathname)
+const location = useLocation()
 
+  const [token, setToken] = useState(() => localStorage.getItem('token'))
+  const [me, setMe] = useState(null)
+  const isAuthed = !!token
+
+
+  const hideOn = new Set(['/','/admin/login'])
+  const showHeader = isAuthed && !hideOn.has(location.pathname)
 
 
   const handleAuthed = async ({ user, token }) => {
@@ -69,16 +72,15 @@ function App() {
 
   useEffect(() => {
     if (isAuthed) handleFetchMe()
-
   }, [isAuthed])
 
   return (
     <div className='page'>
       {showHeader && <Header
-        isAuthed={isAuthed}
-        user={user}
-        onLogout={handleLogout} />}
-
+      isAuthed={isAuthed}
+      user={user}
+      onLogout={handleLogout}
+      />}
 
       <Routes>
         <Route path='/' element={<Landing />} />
@@ -102,11 +104,11 @@ function App() {
             <ProtectRoute
               user={user}
               isAuthed={isAuthed}
-              redirect='/admin/login'
+              redirect='/'
             />
           }
         >
-
+          
           <Route index element={<Navigate to="/user/dashboard" replace />} />
           <Route path='dashboard' element={<UserDashboard />} />
         </Route>
@@ -121,8 +123,8 @@ function App() {
             />
           }
         >
-          <Route index element={<Navigate to="/admin/dashboard" replace />} />
-          <Route path='dashboard' element={<AdminDashboard />} />
+          <Route index element={<Navigate to="/admin/dashboard" replace/>}/>
+          <Route path='dashboard' element={<AdminDashboard/>}/>
         </Route>
         <Route path='*' element={<Navigate to="/" replace />} />
       </Routes>
