@@ -26,6 +26,12 @@ const postSchema = new mongoose.Schema(
             type:[String],
             trim:true
         },
+        status:{
+            type:String,
+            enum:['pending','approved','rejected'],
+            default:'pending',
+            index:true
+        },
         viewLogs:[
             {
                 ip:String,
@@ -50,6 +56,7 @@ const postSchema = new mongoose.Schema(
         timestamps:true
     }
 )
+postSchema.index({ user: 1, number: 1 }, { unique: true });
 
 const Post = mongoose.model("Post",postSchema)
 
